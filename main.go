@@ -70,10 +70,21 @@ func initDB() {
 	if dsn == "" {
 		dsn = "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
 	}
+
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// Retry loop for database connection
+	for i := 1; i <= 10; i++ {
+		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			log.Println("Successfully connected to the database!")
+			break
+		}
+		log.Printf("Attempt %d/10: Failed to connect to database, retrying in 3 seconds... (%v)", i, err)
+		time.Sleep(3 * time.Second)
+	}
+
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Failed to connect to database after retries: %v", err)
 	}
 
 	err = DB.AutoMigrate(&User{}, &Chat{}, &Message{})
