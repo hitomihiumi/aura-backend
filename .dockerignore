@@ -1,0 +1,5 @@
+.env.example
+.github
+.idea
+.git
+docker-compose.yml
