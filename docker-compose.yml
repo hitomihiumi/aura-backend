@@ -1,0 +1,55 @@
+version: '3.8'
+
+volumes:
+  ollama_data:
+  pg_data:
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    devices:
+        - /dev/dri:/dev/dri
+    group_add:
+        - video
+    environment:
+        - OLLAMA_KEEP_ALIVE=5m
+        - OLLAMA_VULKAN=1
+
+  api:
+    image: ghcr.io/hitomihiumi/aura-backend/aura-backend:master
+    container_name: aura_api
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - ollama
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=auradb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=
