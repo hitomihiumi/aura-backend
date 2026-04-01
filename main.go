@@ -394,7 +394,7 @@ func sendMessageStream(c *fiber.Ctx) error {
 	}
 
 	ollamaReq := OllamaRequest{
-		Model:    "gemma", // Configure model as needed
+		Model:    "gemma3", // Configure model as needed
 		Messages: ollamaMessages,
 		Stream:   true,
 	}
